@@ -1,2 +1,2 @@
 ---
-jitsi::www_root: '/var/www'
+jitsi::www_root: '/usr/share/jitsi-meet/'

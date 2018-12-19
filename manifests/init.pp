@@ -14,7 +14,7 @@
 # @param secrets Secrets to define for the components. Will default to a string based on the host name.
 #   Possible keys: +component+, +focus+, +video+
 # @param ssl Location to SSL +certificate+ and +key+. No default.
-# @param www_root Reverse proxy www root. Default from operating system configuration.
+# @param www_root Installation location of the jitsi meet files.
 class jitsi (
   #lint:ignore:trailing_comma Readability confuses the linter; syntax error when used.
   Enum[
@@ -177,15 +177,6 @@ class jitsi (
   # Webserver{{{
   case $webserver {
     'nginx': {
-      file { "${www_root}/${hostname}":
-        ensure => directory,
-      }
-
-      file { "${www_root}/${hostname}/index.html":
-        ensure  => file,
-        content => 'You should never see this.',
-      }
-
       include nginx
       nginx::resource::server { $hostname:
         index_files          => [ 'index.html' ],
@@ -194,7 +185,7 @@ class jitsi (
         ssl_cert             => $ssl['certificate'],
         ssl_key              => $ssl['key'],
         use_default_location => false,
-        www_root             => "${www_root}/${hostname}",
+        www_root             => $www_root,
       }
 
       Nginx::Resource::Location {
