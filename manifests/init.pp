@@ -188,6 +188,7 @@ class jitsi (
 
       include nginx
       nginx::resource::server { $hostname:
+        listen_port => 443,
         ssl         => true,
         ssl_cert    => $ssl['certificate'],
         ssl_key     => $ssl['key'],
@@ -195,28 +196,29 @@ class jitsi (
         index_files => [ 'index.html' ],
       }
 
+      Nginx::Resource::Location {
+        server   => $hostname,
+        ssl_only => true,
+        require  => Nginx::Resource::Server[$hostname],
+      }
+
       nginx::resource::location { "${hostname} rewrite":
-        server        => $hostname,
         location      => ' ~ ^/([a-zA-Z0-9=\?]+)$',
         rewrite_rules => [
           '^/(.*)$ / break',
         ],
-        require       => Nginx::Resource::Server[$hostname],
       }
 
       nginx::resource::location { "${hostname} bosh":
-        server           => $hostname,
         location         => '/http-bind',
         proxy            => 'http://localhost:5280/http-bind',
         proxy_set_header => [
           'X-Forwarded-For $remote_addr',
           'Host $http_host',
         ],
-        require          => Nginx::Resource::Server[$hostname],
       }
 
       nginx::resource::location { "${hostname} xmpp websockets":
-        server              => $hostname,
         location            => '/xmpp-websocket',
         proxy               => 'http://localhost:5280/xmpp-websocket',
         proxy_set_header    => [
@@ -228,7 +230,6 @@ class jitsi (
         location_cfg_append => {
           tcp_nodelay => 'on',
         },
-        require             => Nginx::Resource::Server[$hostname],
       }
     }
 
