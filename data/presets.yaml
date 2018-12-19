@@ -2,6 +2,6 @@
 jitsi::authentication: 'none'
 jitsi::manage_repo: true
 jitsi::packages: 'all'
-jitsi::repo::keyid: '66A9CD0595D6AFA247290D3BEF8B479E2DC1389C'
+jitsi::repo::fingerprint: '66A9CD0595D6AFA247290D3BEF8B479E2DC1389C'
 jitsi::secrets: {}
 jitsi::webserver: 'none'
