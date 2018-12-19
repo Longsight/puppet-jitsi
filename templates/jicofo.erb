@@ -1,0 +1,13 @@
+## vim: set ts=2 sw=2 sts=0 et foldmethod=marker ft=eruby.sh:
+## copyright: B1 Systems GmbH <info@b1-systems.de>, 2018
+## license: GPLv3+, http://www.gnu.org/licenses/gpl-3.0.html
+## author: Tobias Wolter <tobias.wolter@b1-systems.de>, 2018
+JICOFO_HOST=localhost
+JICOFO_HOSTNAME="<%= @hostname %>"
+JICOFO_SECRET="<%= @focus_secret %>"
+JICOFO_PORT=5347
+JICOFO_AUTH_DOMAIN="auth.<%= @hostname %>"
+JICOFO_AUTH_USER="focus"
+JICOFO_AUTH_PASSWORD="<%= @focus_user_secret %>"
+JICOFO_OPTS=""
+JAVA_SYS_PROPS="-Dnet.java.sip.communicator.SC_HOME_DIR_LOCATION=/etc/jitsi -Dnet.java.sip.communicator.SC_HOME_DIR_NAME=jicofo -Dnet.java.sip.communicator.SC_LOG_DIR_LOCATION=/var/log/jitsi -Djava.util.logging.config.file=/etc/jitsi/jicofo/logging.properties"

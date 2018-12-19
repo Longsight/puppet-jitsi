@@ -4,10 +4,17 @@
 ## author: Tobias Wolter <tobias.wolter@b1-systems.de>, 2018
 # @summary Configures a Jitsi Meet instance.
 # @author Tobias Wolter <tobias.wolter@b1-systems.de>
-# @param release Which release (stable, testing, nightly) to use (default: stable)
+# @param authentication What kind of authentication to use.
+# @param authentication_options List of parameters to use for the authentication provider; provider-dependent.
+# @param hostname Host name to use for the installation.
 # @param manage_repo If the repository should be managed by this module. (default: true)
 # @param packages Either 'all' or a list of jitsi packages to install. (default: 'all')
 #   Valid choices: +jitsi-videobridge+, +jicofo+, +jigasi+
+# @param release Which release (stable, testing, nightly) to use (default: stable)
+# @param secrets Secrets to define for the components. Will default to a string based on the host name.
+#   Possible keys: +component+, +focus+, +video+
+# @param ssl Location to SSL +certificate+ and +key+. No default.
+# @param www_root Reverse proxy www root. Default from operating system configuration.
 class jitsi (
   #lint:ignore:trailing_comma Readability confuses the linter; syntax error when used.
   Enum[
@@ -18,27 +25,41 @@ class jitsi (
   Hash $authentication_options, # validated later
   Stdlib::Fqdn $hostname,
   Boolean $manage_repo,
-  Enum[
-    'stable',
-    'testing',
-    'nightly'
-  ] $release,
   Variant[
     Enum['all'],
     Array[
       Enum[
+        'jitsi-meet-web',
         'jitsi-videobridge',
         'jicofo',
         'jigasi'
       ]
     ]
   ] $packages,
+  Jitsi::Release $release,
   Struct[{
-    cert => Stdlib::Unixpath,
-    key  => Stdlib::Unixpath,
+    Optional[focus]      => String[1],
+    Optional[focus-user] => String[1],
+    Optional[video]      => String[1],
+  }] $secrets,
+  Struct[{
+    certficate => Stdlib::Unixpath,
+    key        => Stdlib::Unixpath,
   }] $ssl,
+  Enum[
+    'apache',
+    'nginx',
+    'none'
+  ] $webserver,
+  Stdlib::Unixpath $www_root,
   #lint:endignore:trailing_comma
 ) {
+  # Variables{{{
+  # We need to define some of the variables here to save en evaluation logic in the templates.
+  $focus_secret      = pick($secrets['focus'], fqdn_rand_string(32, '', 'focus'))
+  $focus_user_secret = pick($secrets['focus-user'], fqdn_rand_string(32, '', 'focus-user'))
+  $video_secret      = pick($secrets['video'], fqdn_rand_string(32, '', 'video'))
+  # }}}
   # Repository management{{{
   if $manage_repo {
     class { 'jitsi::repo':
@@ -48,7 +69,7 @@ class jitsi (
   # }}}
   # Install packages{{{
   $package_list = $packages ? {
-    String => [ 'jitsi-meet' ],
+    String => [ 'jitsi-meet-web', 'jitsi-videobridge', 'jicofo', 'jigasi' ],
     Array  => $packages,
   }
   ensure_packages([
@@ -58,15 +79,8 @@ class jitsi (
     ensure => present,
   })
   # }}}
-  # Configure SSL certificate for jetty{{{
-  java_ks { "${hostname}:/etc/jitsi/videobridge/${hostname}.jks":
-    ensure      => latest,
-    certificate => $ssl['cert'],
-    private_key => $ssl['key'],
-    password    => fqdn_rand_string(32, '', 'videobridge-keystore'),
-  }
-  # }}}
-  # Configure prosody{{{
+  # Prosody{{{
+  # Authentifcation configuration{{{
   case $authentication {
     'ldap': {
       assert_type(Struct[{
@@ -87,28 +101,146 @@ class jitsi (
       fail("Authentication method ${authentication} not implemented yet, sorry.")
     }
   }
-
+  # }}}
   class { 'prosody':
+    admins         => [
+      "focus@auth.${hostname}",
+    ],
+    components     => {
+      "conference.${hostname}"        => {
+        type    => 'muc',
+        options => {
+          storage => 'null',
+        },
+      },
+      "jitsi-videobridge.${hostname}" => {
+        secret => $video_secret,
+      },
+      "focus.${hostname}"             => {
+        secret => $focus_secret,
+      },
+    },
     custom_options => {
+      consider_bosh_secure => true,
       https_ssl            => {
-        ssl_cert => $ssl['cert'],
+        ssl_cert => $ssl['certificate'],
         ssl_key  => $ssl['key'],
       },
-      consider_bosh_secure => true,
     },
   }
-
+  # Vhosts{{{
+  $vhost_modules = [
+    'bosh',
+    'pubsub',
+    'ping',
+  ]
+  # General vhost for jitsi meet{{{
   prosody::virtualhost { $hostname:
     ensure         => present,
-    ssl_cert       => $ssl['cert'],
+    ssl_cert       => $ssl['certificate'],
     ssl_key        => $ssl['key'],
     custom_options => {
-      modules_enabled => [
-        'bosh',
-        'pubsub',
-        'ping',
-      ],
+      modules_enabled => $vhost_modules,
     },
   }
   # }}}
+    # Guest vhost{{{
+    prosody::virtualhost { "guest.${hostname}":
+      ensure                 => present,
+      authentication         => 'anonymous',
+      c2s_require_encryption => false,
+      ssl_cert               => $ssl['certificate'],
+      ssl_key                => $ssl['key'],
+      custom_options         => {
+        modules_enabled        => $vhost_modules,
+      },
+    }
+    # }}}
+    # Authentication vhost for conference focus user{{{
+    prosody::virtualhost { "auth.${hostname}":
+      ensure         => present,
+      ssl_cert       => $ssl['certificate'],
+      ssl_key        => $ssl['key'],
+      authentication => 'internal_plain',
+    }
+    # }}}
+    # }}}
+    # Create focus user{{{
+    prosody::user { 'focus':
+      pass => $focus_user_secret,
+      host => "auth.${hostname}",
+    }
+    #}}}
+  # }}}
+  # Webserver{{{
+  case $webserver {
+    'nginx': {
+      file { "${www_root}/${hostname}":
+        ensure => directory,
+      }
+
+      file { "${www_root}/${hostname}/index.html":
+        ensure  => file,
+        content => 'You should never see this.',
+      }
+
+      include nginx
+      nginx::resource::server { $hostname:
+        ssl      => true,
+        ssl_cert => $ssl['certificate'],
+        ssl_key  => $ssl['key'],
+        root     => "${www_root}/${hostname}",
+        index    => 'index.html',
+      }
+
+      nginx::resource::location { "${hostname} rewrite":
+        location      => ' ~ ^/([a-zA-Z0-9=\?]+)$',
+        server        => $hostname,
+        rewrite_rules => [
+          '^/(.*)$ / break',
+        ],
+      }
+
+      nginx::resource::location { "${hostname} bosh":
+        location         => '/http-bind',
+        proxy            => 'http://localhost:5280/http-bind',
+        proxy_set_header => [
+          'X-Forwarded-For $remote_addr',
+          'Host $http_host',
+        ],
+      }
+    }
+    default: {
+      fail('That webserver is not supported yet.')
+    }
+  }
+  #}}}
+  # Jitsi{{{
+  # SSL certificate for jetty{{{
+  java_ks { "${hostname}:/etc/jitsi/videobridge/${hostname}.jks":
+    ensure      => latest,
+    certificate => $ssl['certificate'],
+    private_key => $ssl['key'],
+    password    => fqdn_rand_string(32, '', 'videobridge-keystore'),
+  }
+  # }}}
+  # Meet{{{
+  file { "/etc/jitsi/meet/${hostname}-config.js":
+    ensure  => file,
+    content => template('jitsi/config.js.erb'),
+  }
+  # }}}
+  # Jicofo{{{
+  file { '/etc/jitsi/jicofo/config':
+    ensure  => file,
+    content => template('jitsi/jicofo.erb'),
+  }
+  # }}}
+  # Videobridge{{{
+  file { '/etc/jitsi/videobridge/config':
+    ensure  => file,
+    content => template('jitsi/videobridge.erb'),
+  }
+  # }}}
+
 }

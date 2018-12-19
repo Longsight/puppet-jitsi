@@ -1,0 +1,128 @@
+// vim: set ts=2 sw=2 sts=0 et foldmethod=marker:
+// copyright: B1 Systems GmbH <info@b1-systems.de>, 2018
+// license: GPLv3+, http://www.gnu.org/licenses/gpl-3.0.html
+// author: Tobias Wolter <tobias.wolter@b1-systems.de>, 2018
+<%# vim: set ts=8 sw=8 tw=0 noet ft=eruby.javascript :%>
+var config = {
+	hosts = {
+		domain: '<%= @hostname %>',
+		muc: 'conference.<%= @hostname %>',
+		anonymousdomain: 'guest.<%= @hostname %>',
+		// authdomain: '<%= @hostname %>',
+		// jirecon: 'jirecon.<%= @hostname %>',
+		// call_control: 'callcontrol.<%= @hostname %>',
+		// focus: 'focus.<%= @hostname %>',
+	},
+	bosh: '//<%= @hostname %>/http-bind',
+	clientNode: 'http://jitsi.org/jitsimeet',
+	// focusUserJid: 'focus@auth.<%= @hostname %>',
+	testing: {
+		enableFirefoxSimulcast: false,
+		p2pTestMode: false
+		// testMode: false
+	},
+	// webrtcIceUdpDisable: false,
+	// webrtcIceTcpDisable: false,
+	// disableAudioLevels: false,
+	// startAudioOnly: false,
+	// startAudioMuted: 10,
+	// startWithAudioMuted: false,
+	// resolution: 720,
+	// constraints: {
+	//     video: {
+	//         aspectRatio: 16 / 9,
+	//         height: {
+	//             ideal: 1080,
+	//             max: 1080,
+	//             min: 240
+	//         }
+	//     }
+	// },
+	// disableSimulcast: false,
+	// enableLayerSuspension: false,
+	disableSuspendVideo: true,
+	// startVideoMuted: 10,
+	// startWithVideoMuted: false,
+	// preferH264: true,
+	// disableH264: false,
+	desktopSharingChromeExtId: null,
+	desktopSharingChromeDisabled: true,
+	desktopSharingChromeSources: [ 'screen', 'window', 'tab' ],
+	desktopSharingChromeMinExtVersion: '0.1',
+	desktopSharingFirefoxDisabled: false,
+	// desktopSharingFrameRate: {
+	//     min: 5,
+	//     max: 5
+	// },
+	// startScreenSharing: false,
+	// fileRecordingsEnabled: false,
+	// liveStreamingEnabled: false,
+	channelLastN: -1,
+	// disableRtx: false,
+	// enableTcc: true,
+	// enableRemb: false,
+	// minParticipants: 2,
+	// useStunTurn: true,
+	// useIPv6: true,
+	// openBridgeChannel: true,
+	// useNicks: false,
+	// requireDisplayName: true,
+	enableWelcomePage: true,
+	// enableClosePage: false,
+	// disable1On1Mode: false,
+	minHDHeight: 540,
+	// defaultLanguage: 'en',
+	enableUserRolesBasedOnToken: false,
+	// enableFeaturesBasedOnToken: false,
+	// noticeMessage: '',
+	// gatherStats: false,
+	// callStatsID: '',
+	// callStatsSecret: '',
+	// enableStatsID: false
+	// enableDisplayNameInStats: false
+	// disableThirdPartyRequests: false,
+	p2p: {
+		enabled: true,
+		// useStunTurn: true,
+		stunServers: [
+			{ urls: 'stun:stun.l.google.com:19302' },
+			{ urls: 'stun:stun1.l.google.com:19302' },
+			{ urls: 'stun:stun2.l.google.com:19302' }
+		],
+		// iceTransportPolicy: 'all',
+		preferH264: true
+		// disableH264: false,
+		// backToP2PDelay: 5
+	},
+	// analyticsScriptUrls: [
+	//      "libs/analytics-ga.js", // google-analytics
+	//      "https://example.com/my-custom-analytics.js"
+	// ],
+	// googleAnalyticsTrackingId = 'your-tracking-id-here-UA-123456-1',
+	deploymentInfo: {
+		// shard: "shard1",
+		// region: "europe",
+		// userRegion: "asia"
+	},
+	/**
+	_peerConnStatusOutOfLastNTimeout
+	_peerConnStatusRtcMuteTimeout
+	abTesting
+	avgRtpStatsN
+	callStatsConfIDNamespace
+	callStatsCustomScriptUrl
+	desktopSharingSources
+	disableAEC
+	disableAGC
+	disableAP
+	disableHPF
+	disableNS
+	enableLipSync
+	enableTalkWhileMuted
+	forceJVB121Ratio
+	hiddenDomain
+	ignoreStartMuted
+	nick
+	startBitrate
+	*/
+}
