@@ -219,24 +219,18 @@ class jitsi (
   }
   #}}}
   # Jitsi{{{
-  # SSL certificate for jetty{{{
-  java_ks { "${hostname}:/etc/jitsi/videobridge/${hostname}.jks":
-    ensure      => latest,
-    certificate => $ssl['certificate'],
-    private_key => $ssl['key'],
-    password    => fqdn_rand_string(32, '', 'videobridge-keystore'),
-  }
-  # }}}
   # Meet{{{
   file { "/etc/jitsi/meet/${hostname}-config.js":
     ensure  => file,
     content => template('jitsi/config.js.erb'),
+    require => Package['jitsi-meet-web'],
   }
   # }}}
   # Jicofo{{{
   file { '/etc/jitsi/jicofo/config':
     ensure  => file,
     content => template('jitsi/jicofo.erb'),
+    require => Package['jicofo'],
   }
   # }}}
   # Videobridge{{{

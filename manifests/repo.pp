@@ -21,7 +21,8 @@ class jitsi::repo (
 
       apt::source { 'jitsi-meet':
         location => 'https://download.jitsi.org/',
-        repos    => $release,
+        release  => $release,
+        repos    => '',
       }
     }
     default: {
