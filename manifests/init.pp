@@ -196,23 +196,42 @@ class jitsi (
       }
 
       nginx::resource::location { "${hostname} rewrite":
-        location      => ' ~ ^/([a-zA-Z0-9=\?]+)$',
         server        => $hostname,
+        location      => ' ~ ^/([a-zA-Z0-9=\?]+)$',
         rewrite_rules => [
           '^/(.*)$ / break',
         ],
+        require       => Nginx::Resource::Server[$hostname],
       }
 
       nginx::resource::location { "${hostname} bosh":
-        location         => '/http-bind',
         server           => $hostname,
+        location         => '/http-bind',
         proxy            => 'http://localhost:5280/http-bind',
         proxy_set_header => [
           'X-Forwarded-For $remote_addr',
           'Host $http_host',
         ],
+        require          => Nginx::Resource::Server[$hostname],
+      }
+
+      nginx::resource::location { "${hostname} xmpp websockets":
+        server              => $hostname,
+        location            => '/xmpp-websocket',
+        proxy               => 'http://localhost:5280/xmpp-websocket',
+        proxy_set_header    => [
+          'Upgrade $http_upgrade',
+          'Connection "upgrade',
+          'Host $host',
+        ],
+        proxy_http_version  => '1.1',
+        location_cfg_append => {
+          tcp_nodelay => 'on',
+        },
+        require             => Nginx::Resource::Server[$hostname],
       }
     }
+
     default: {
       fail('That webserver is not supported yet.')
     }
