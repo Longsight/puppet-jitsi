@@ -1,0 +1,47 @@
+{
+  "name": "b1systems-jitsi",
+  "version": "0.1.0",
+  "author": "Tobias Wolter <tobias.wolter@b1-systems.de>",
+  "summary": "Configure a Jitsi Meet server",
+  "license": "Apache-2.0",
+  "source": "https://github.com/b1-systems/puppet-jitsi",
+  "dependencies": [
+    {
+      "name": "puppetlabs-stdlib",
+      "version_requirement": ">= 4.25.0 < 6.0.0"
+    },
+    {
+      "name": "mayflower-prosody",
+      "version_requirement": ">= 0.3.2 < 1.0.0"
+    },
+    {
+      "name": "puppetlabs-java_ks",
+      "version_requirement": ">= 2.3.0 < 3.0.0"
+    }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "Debian",
+      "operatingsystemrelease": [
+        "8",
+        "9"
+      ]
+    },
+    {
+      "operatingsystem": "Ubuntu",
+      "operatingsystemrelease": [
+        "16.04",
+        "18.04"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 4.7.0 < 7.0.0"
+    }
+  ],
+  "pdk-version": "1.7.1",
+  "template-url": "file:///opt/puppetlabs/pdk/share/cache/pdk-templates.git",
+  "template-ref": "1.7.1-0-g810b982"
+}
