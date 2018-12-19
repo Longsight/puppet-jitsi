@@ -204,6 +204,13 @@ class jitsi (
         require  => Nginx::Resource::Server[$hostname],
       }
 
+      nginx::resource::location { "${hostname} default":
+        location            => '/',
+        location_cfg_append => {
+          ssi => 'on',
+        },
+      }
+
       nginx::resource::location { "${hostname} rewrite":
         location      => ' ~ ^/([a-zA-Z0-9=\?]+)$',
         rewrite_rules => [
