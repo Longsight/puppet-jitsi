@@ -43,8 +43,8 @@ class jitsi (
     Optional[video]      => String[1],
   }] $secrets,
   Struct[{
-    certficate => Stdlib::Unixpath,
-    key        => Stdlib::Unixpath,
+    certificate => Stdlib::Unixpath,
+    key         => Stdlib::Unixpath,
   }] $ssl,
   Enum[
     'apache',
