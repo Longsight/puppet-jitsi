@@ -198,6 +198,7 @@ class jitsi (
 
       Nginx::Resource::Location {
         server   => $hostname,
+        ssl      => true,
         ssl_only => true,
         require  => Nginx::Resource::Server[$hostname],
       }
