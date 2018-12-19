@@ -146,10 +146,10 @@ class jitsi (
   # }}}
     # Guest vhost{{{
     prosody::virtualhost { "guest.${hostname}":
-      ensure                 => present,
-      ssl_cert               => $ssl['certificate'],
-      ssl_key                => $ssl['key'],
-      custom_options         => {
+      ensure         => present,
+      ssl_cert       => $ssl['certificate'],
+      ssl_key        => $ssl['key'],
+      custom_options => {
         authentication         => 'anonymous',
         c2s_require_encryption => false,
         modules_enabled        => $vhost_modules,
@@ -161,7 +161,9 @@ class jitsi (
       ensure         => present,
       ssl_cert       => $ssl['certificate'],
       ssl_key        => $ssl['key'],
-      authentication => 'internal_plain',
+      custom_options => {
+        authentication => 'internal_plain',
+      },
     }
     # }}}
     # }}}
@@ -242,5 +244,5 @@ class jitsi (
     content => template('jitsi/videobridge.erb'),
   }
   # }}}
-
+  # }}}
 }
