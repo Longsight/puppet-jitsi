@@ -205,6 +205,7 @@ class jitsi (
 
       nginx::resource::location { "${hostname} bosh":
         location         => '/http-bind',
+        server           => $hostname,
         proxy            => 'http://localhost:5280/http-bind',
         proxy_set_header => [
           'X-Forwarded-For $remote_addr',
