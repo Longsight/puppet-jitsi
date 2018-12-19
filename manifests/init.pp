@@ -188,12 +188,13 @@ class jitsi (
 
       include nginx
       nginx::resource::server { $hostname:
-        listen_port => 443,
-        ssl         => true,
-        ssl_cert    => $ssl['certificate'],
-        ssl_key     => $ssl['key'],
-        www_root    => "${www_root}/${hostname}",
-        index_files => [ 'index.html' ],
+        index_files          => [ 'index.html' ],
+        listen_port          => 443,
+        ssl                  => true,
+        ssl_cert             => $ssl['certificate'],
+        ssl_key              => $ssl['key'],
+        use_default_location => false,
+        www_root             => "${www_root}/${hostname}",
       }
 
       Nginx::Resource::Location {
