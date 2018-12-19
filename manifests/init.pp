@@ -220,6 +220,10 @@ class jitsi (
   #}}}
   # Jitsi{{{
   # Meet{{{
+  file { '/etc/jitsi/meet':
+    ensure => directory,
+  }
+
   file { "/etc/jitsi/meet/${hostname}-config.js":
     ensure  => file,
     content => template('jitsi/config.js.erb'),
