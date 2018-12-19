@@ -147,11 +147,11 @@ class jitsi (
     # Guest vhost{{{
     prosody::virtualhost { "guest.${hostname}":
       ensure                 => present,
-      authentication         => 'anonymous',
-      c2s_require_encryption => false,
       ssl_cert               => $ssl['certificate'],
       ssl_key                => $ssl['key'],
       custom_options         => {
+        authentication         => 'anonymous',
+        c2s_require_encryption => false,
         modules_enabled        => $vhost_modules,
       },
     }
