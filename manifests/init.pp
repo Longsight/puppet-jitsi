@@ -188,11 +188,11 @@ class jitsi (
 
       include nginx
       nginx::resource::server { $hostname:
-        ssl      => true,
-        ssl_cert => $ssl['certificate'],
-        ssl_key  => $ssl['key'],
-        root     => "${www_root}/${hostname}",
-        index    => 'index.html',
+        ssl         => true,
+        ssl_cert    => $ssl['certificate'],
+        ssl_key     => $ssl['key'],
+        www_root    => "${www_root}/${hostname}",
+        index_files => [ 'index.html' ],
       }
 
       nginx::resource::location { "${hostname} rewrite":
