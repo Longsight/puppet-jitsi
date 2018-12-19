@@ -122,10 +122,10 @@ class jitsi (
     },
     custom_options => {
       consider_bosh_secure => true,
-      https_ssl            => {
-        ssl_cert => $ssl['certificate'],
-        ssl_key  => $ssl['key'],
-      },
+      # https_ssl            => {
+      #   ssl_cert => $ssl['certificate'],
+      #   ssl_key  => $ssl['key'],
+      # },
     },
   }
   # Vhosts{{{
