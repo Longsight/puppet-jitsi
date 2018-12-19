@@ -225,7 +225,7 @@ class jitsi (
         proxy               => 'http://localhost:5280/xmpp-websocket',
         proxy_set_header    => [
           'Upgrade $http_upgrade',
-          'Connection "upgrade',
+          'Connection "upgrade"',
           'Host $host',
         ],
         proxy_http_version  => '1.1',
