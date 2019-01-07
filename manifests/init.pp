@@ -301,7 +301,7 @@ class jitsi (
   }
 
   # Deploy systemd script
-  file { '/etc/systemd/systemd/jvb.service':
+  file { '/etc/systemd/system/jvb.service':
     ensure => file,
     source => 'puppet:///modules/jitsi/videobridge/jvb.service',
     notify => Exec['refresh systemd'],
