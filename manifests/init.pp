@@ -309,7 +309,7 @@ class jitsi (
 
   # Refresh daemon
   exec { 'refresh systemd':
-    command     => '/usr/sbin/systemctl daemon-reload',
+    command     => '/bin/systemctl daemon-reload',
     refreshonly => true,
   }
   # }}}
