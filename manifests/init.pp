@@ -80,18 +80,6 @@ class jitsi (
   })
   # }}}
   # Prosody{{{
-  # Authentifcation configuration{{{
-  case $authentication {
-    'ldap': {
-      $auth_configuration = {
-        authentication => 'ldap',
-      } + $authentication_options
-    }
-    default: {
-      fail("Authentication method ${authentication} not implemented yet, sorry.")
-    }
-  }
-  # }}}
   class { 'prosody':
     admins         => [
       "focus@auth.${hostname}",
@@ -128,10 +116,6 @@ class jitsi (
       consider_websocket_secure => true,
       cross_domain_bosh         => true,
       use_libevent              => true,
-      # https_ssl               => {
-      #   ssl_cert              => $ssl['certificate'],
-      #   ssl_key               => $ssl['key'],
-      # },
     },
   }
   # Vhosts{{{
