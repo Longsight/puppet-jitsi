@@ -9,7 +9,7 @@
 # @param hostname Host name to use for the installation.
 # @param manage_repo If the repository should be managed by this module. (default: true)
 # @param packages Either 'all' or a list of jitsi packages to install. (default: 'all')
-#   Valid choices: +jitsi-videobridge+, +jicofo+, +jigasi+
+#   Valid choices: *jitsi-meet-web*, +jitsi-videobridge+, +jicofo+, +jigasi+
 # @param release Which release (stable, testing, nightly) to use (default: stable)
 # @param secrets Secrets to define for the components. Will default to a string based on the host name.
 #   Possible keys: +component+, +focus+, +video+
@@ -83,16 +83,6 @@ class jitsi (
   # Authentifcation configuration{{{
   case $authentication {
     'ldap': {
-      assert_type(Struct[{
-        # TODO formulate data types
-        # TODO check for completeness, this was just taken from a test install
-        ldap_base     => String[1],
-        ldap_server   => String[1],
-        ldap_rootdn   => String[1],
-        ldap_password => String[1],
-        ldap_tls      => Boolean,
-        ldap_filter   => String[1],
-      }], $authentication_options)
       $auth_configuration = {
         authentication => 'ldap',
       } + $authentication_options
@@ -120,11 +110,27 @@ class jitsi (
         secret => $focus_secret,
       },
     },
+    modules        => [
+      'groups',
+      'smacks',
+      'carbons',
+      'mam',
+      'lastactivity',
+      'offline',
+      'pubsub',
+      'adhoc',
+      'websocket',
+      'http_altconnect',
+      'muc',
+    ],
     custom_options => {
-      consider_bosh_secure => true,
-      # https_ssl            => {
-      #   ssl_cert => $ssl['certificate'],
-      #   ssl_key  => $ssl['key'],
+      consider_bosh_secure      => true,
+      consider_websocket_secure => true,
+      cross_domain_bosh         => true,
+      use_libevent              => true,
+      # https_ssl               => {
+      #   ssl_cert              => $ssl['certificate'],
+      #   ssl_key               => $ssl['key'],
       # },
     },
   }
@@ -135,13 +141,47 @@ class jitsi (
     'ping',
   ]
   # General vhost for jitsi meet{{{
+    case $authentication {
+      'ldap': {
+        assert_type(Struct[{
+          base          => String[1],
+          bind_dn       => String[1],
+          bind_password => String[1],
+          server        => String[1],
+          tls           => Boolean,
+          userfield     => String[1],
+        }], $authentication_options)
+        $custom_options = {
+          authentication => 'ldap2',
+          ldap           => {
+            user          => {
+              basedn        => $authentication_options['base'],
+              usernamefield => $authentication_options['userfield'],
+            },
+            bind_dn       => $authentication_options['bind_dn'],
+            bind_password => $authentication_options['bind_password'],
+            hostname      => $authentication_options['server'],
+            use_tls       => $authentication_options['tls'],
+          },
+        }
+      }
+      'local': {
+        $custom_options = {
+          authentication => 'internal_plain',
+        }
+      }
+      'none', default: {
+        $custom_options = {}
+      }
+    }
+
   prosody::virtualhost { $hostname:
     ensure         => present,
     ssl_cert       => $ssl['certificate'],
     ssl_key        => $ssl['key'],
     custom_options => {
       modules_enabled => $vhost_modules,
-    },
+    } + $custom_options,
   }
   # }}}
     # Guest vhost{{{
@@ -244,23 +284,49 @@ class jitsi (
     ensure => directory,
   }
 
-  file { "/etc/jitsi/meet/${hostname}-config.js":
+  file { "${www_root}/config.js":
     ensure  => file,
-    content => template('jitsi/config.js.erb'),
+    content => template('jitsi/meet/config.js.erb'),
     require => Package['jitsi-meet-web'],
   }
   # }}}
   # Jicofo{{{
   file { '/etc/jitsi/jicofo/config':
     ensure  => file,
-    content => template('jitsi/jicofo.erb'),
+    content => template('jitsi/jicofo/config.erb'),
     require => Package['jicofo'],
   }
   # }}}
   # Videobridge{{{
+  # Daemon configuration
   file { '/etc/jitsi/videobridge/config':
     ensure  => file,
-    content => template('jitsi/videobridge.erb'),
+    content => template('jitsi/videobridge/config.erb'),
+  }
+
+  # App configuration
+  file { '/etc/jitsi/videobridge/sip-communicator.properties':
+    ensure  => file,
+    content => template('jitsi/videobridge/sip-communicator.properties.erb'),
+  }
+
+  # Remove old sysvinit script
+  file { '/etc/init.d/jitsi-videobridge':
+    ensure => absent,
+    notify => Exec['refresh systemd'],
+  }
+
+  # Deploy systemd script
+  file { '/etc/systemd/systemd/jvb.service':
+    ensure => file,
+    source => 'puppet:///modules/jitsi/videobridge/jvb.service',
+    notify => Exec['refresh systemd'],
+  }
+
+  # Refresh daemon
+  exec { 'refresh systemd':
+    command     => '/usr/sbin/systemctl daemon-reload',
+    refreshonly => true,
   }
   # }}}
   # }}}
