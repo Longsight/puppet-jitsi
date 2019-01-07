@@ -5,6 +5,9 @@ Description=Jitsi Video Bridge
 EnvironmentFile=/etc/jitsi/videobridge/config
 ExecStart=/usr/share/jitsi-videobridge/jvb.sh --host=${JVB_HOST} --domain=${JVB_HOSTNAME} port=${JVB_PORT} --secret=${JVB_SECRET} ${JVB_OPTS}
 User=jvb
+LimitNOFILE=65000
+LimitNPROC=65000
+TasksMax=65000
 
 [Install]
 WantedBy=multi-user.target
