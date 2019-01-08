@@ -9,12 +9,17 @@
 # @param authentication_options List of parameters to use for the authentication provider; provider-dependent.
 # @param hostname Host name to use for the installation.
 # @param manage_repo If the repository should be managed by this module. (default: true)
+# @param manage_service Whether to manage certain services.
+# @option manage_service [Boolean] :webserver
+#      Manage the webserver service. Default: +true+
 # @param packages Either 'all' or a list of jitsi packages to install. (default: 'all')
 #   Valid choices: *jitsi-meet-web*, +jitsi-videobridge+, +jicofo+, +jigasi+
 # @param release Which release (stable, testing, nightly) to use (default: stable)
 # @param secrets Secrets to define for the components. Will default to a string based on the host name.
-#   Possible keys: +component+, +focus+, +video+
+#   Possible keys: +component+, +focus+, +focus_user+ +video+
 # @param ssl Location to SSL +certificate+ and +key+. No default.
+# @param webserver Which web server to use for serving the content.
+#     Currently supported: +nginx+.
 # @param www_root Installation location of the jitsi meet files.
 class jitsi (
   #lint:ignore:trailing_comma Readability confuses the linter; syntax error when used.
@@ -26,6 +31,9 @@ class jitsi (
   Hash $authentication_options, # validated later
   Stdlib::Fqdn $hostname,
   Boolean $manage_repo,
+  Struct[{
+    'webserver' => Boolean,
+  }] $manage_service,
   Variant[
     Enum['all'],
     Array[
@@ -202,7 +210,9 @@ class jitsi (
   # Webserver{{{
   case $webserver {
     'nginx': {
-      include nginx
+      class { 'nginx':
+        service_manage => $manage_service['webserver'],
+      }
       nginx::resource::server { $hostname:
         index_files          => [ 'index.html' ],
         listen_port          => 443,
