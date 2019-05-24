@@ -324,7 +324,7 @@ class jitsi (
 
   file { '/etc/systemd/system/jitsi-videobridge.service.d/no-logfile.conf':
     ensure  => present,
-    content => "[Service]\nExecStart=\nExecStart=/usr/share/jitsi-videobridge/jvb.sh --host=\$\${JVB_HOST:-localhost} --domain=\${JVB_HOSTNAME} --port=\${JVB_PORT} --secret=\${JVB_SECRET} \${JVB_OPTS}\n",
+    content => "[Service]\nExecStart=\nExecStart=/usr/share/jitsi-videobridge/jvb.sh --host=\${JVB_HOST} --domain=\${JVB_HOSTNAME} --port=\${JVB_PORT} --secret=\${JVB_SECRET} \${JVB_OPTS}\n",
     notify  => Exec['refresh systemd'],
   }
 
