@@ -1,6 +1,6 @@
 {
   "name": "b1systems-jitsi",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Tobias Wolter <tobias.wolter@b1-systems.de>",
   "summary": "Configure a Jitsi Meet server",
   "license": "Apache-2.0",
