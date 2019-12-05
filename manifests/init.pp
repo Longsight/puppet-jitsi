@@ -268,9 +268,9 @@ class jitsi (
       }
     }
 
-    default: {
-      fail('That webserver is not supported yet.')
-    }
+    # default: {
+    #   fail('That webserver is not supported yet.')
+    # }
   }
   #}}}
   # Jitsi{{{
