@@ -330,30 +330,14 @@ class jitsi (
     notify  => Class['systemd::systemctl::daemon_reload'],
   }
 
-  service { 'prosody':
-    ensure    => running,
-    enable    => true,
-    subscribe => Class['systemd::systemctl::daemon_reload'],
+  class { 'systemd::systemctl::daemon_reload':
+    notify => [
+      Service['prosody'],
+      Service['jitsi-videobridge'],
+      Service['jicofo'],
+      Service['jigasi'],
+    ]
   }
-
-  service { 'jitsi-videobridge':
-    ensure    => running,
-    enable    => true,
-    subscribe => Class['systemd::systemctl::daemon_reload'],
-  }
-
-  service { 'jicofo':
-    ensure    => running,
-    enable    => true,
-    subscribe => Class['systemd::systemctl::daemon_reload'],
-  }
-
-  service { 'jigasi':
-    ensure    => running,
-    enable    => true,
-    subscribe => Class['systemd::systemctl::daemon_reload'],
-  }
-
 
   # }}}
   # }}}
