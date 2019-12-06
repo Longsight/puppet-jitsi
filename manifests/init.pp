@@ -63,6 +63,8 @@ class jitsi (
   Stdlib::Unixpath $www_root,
   #lint:endignore:trailing_comma
 ) {
+  include ::systemd::systemctl::daemon_reload
+
   # Variables{{{
   # We need to define some of the variables here to save en evaluation logic in the templates.
   $focus_secret      = pick($secrets['focus'], fqdn_rand_string(32, '', 'focus'))
@@ -325,14 +327,34 @@ class jitsi (
   file { '/etc/systemd/system/jitsi-videobridge.service.d/no-logfile.conf':
     ensure  => present,
     content => "[Service]\nExecStart=\nExecStart=/usr/share/jitsi-videobridge/jvb.sh --host=\${JVB_HOST} --domain=\${JVB_HOSTNAME} --port=\${JVB_PORT} --secret=\${JVB_SECRET} \${JVB_OPTS}\n",
-    notify  => Exec['refresh systemd'],
+    notify  => Class['systemd::systemctl::daemon_reload'],
   }
 
-  # Refresh daemon
-  exec { 'refresh systemd':
-    command     => '/bin/systemctl daemon-reload',
-    refreshonly => true,
+  service { 'prosody':
+    ensure    => running,
+    enable    => true,
+    subscribe => Class['systemd::systemctl::daemon_reload'],
   }
+
+  service { 'jitsi-videobridge':
+    ensure    => running,
+    enable    => true,
+    subscribe => Class['systemd::systemctl::daemon_reload'],
+  }
+
+  service { 'jicofo':
+    ensure    => running,
+    enable    => true,
+    subscribe => Class['systemd::systemctl::daemon_reload'],
+  }
+
+  service { 'jigasi':
+    ensure    => running,
+    enable    => true,
+    subscribe => Class['systemd::systemctl::daemon_reload'],
+  }
+
+
   # }}}
   # }}}
 }
