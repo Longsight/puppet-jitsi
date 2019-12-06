@@ -285,6 +285,7 @@ class jitsi (
     ensure  => file,
     content => template('jitsi/meet/config.js.erb'),
     require => Package['jitsi-meet-web'],
+    notify  => Class['systemd::systemctl::daemon_reload'],
   }
   # }}}
   # Jicofo{{{
@@ -292,6 +293,7 @@ class jitsi (
     ensure  => file,
     content => template('jitsi/jicofo/config.erb'),
     require => Package['jicofo'],
+    notify  => Class['systemd::systemctl::daemon_reload'],
   }
   # }}}
   # Videobridge{{{
@@ -299,25 +301,27 @@ class jitsi (
   file { '/etc/jitsi/videobridge/config':
     ensure  => file,
     content => template('jitsi/videobridge/config.erb'),
+    notify  => Class['systemd::systemctl::daemon_reload'],
   }
 
   # App configuration
   file { '/etc/jitsi/videobridge/sip-communicator.properties':
     ensure  => file,
     content => template('jitsi/videobridge/sip-communicator.properties.erb'),
+    notify  => Class['systemd::systemctl::daemon_reload'],
   }
 
   # Remove old sysvinit script
   file { '/etc/init.d/jitsi-videobridge':
     ensure => absent,
-    notify => Exec['refresh systemd'],
+    notify => Class['systemd::systemctl::daemon_reload'],
   }
 
   # Remove systemd script
   # The package now ships with one.
   file { '/etc/systemd/system/jvb.service':
     ensure => absent,
-    notify => Exec['refresh systemd'],
+    notify => Class['systemd::systemctl::daemon_reload'],
   }
 
   file { '/etc/systemd/system/jitsi-videobridge.service.d':
@@ -327,18 +331,12 @@ class jitsi (
   file { '/etc/systemd/system/jitsi-videobridge.service.d/no-logfile.conf':
     ensure  => present,
     content => "[Service]\nExecStart=\nExecStart=/usr/share/jitsi-videobridge/jvb.sh --host=\${JVB_HOST} --domain=\${JVB_HOSTNAME} --port=\${JVB_PORT} --secret=\${JVB_SECRET} \${JVB_OPTS}\n",
-    notify  => Class['systemd::systemctl::daemon_reload'],
   }
-
-  class { 'systemd::systemctl::daemon_reload':
-    notify => [
-      Service['prosody'],
-      Service['jitsi-videobridge'],
-      Service['jicofo'],
-      Service['jigasi'],
-    ]
-  }
-
+  ~>Class['systemd::systemctl::daemon_reload']
+  ~>Service['prosody']
+  ~>Service['jitsi-videobridge']
+  ~>Service['jicofo']
+  ~>Service['jigasi']
   # }}}
   # }}}
 }
