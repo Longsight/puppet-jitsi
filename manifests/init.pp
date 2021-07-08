@@ -63,7 +63,6 @@ class jitsi (
   Stdlib::Unixpath $www_root,
   #lint:endignore:trailing_comma
 ) {
-  include ::systemd::systemctl::daemon_reload
 
   # Variables{{{
   # We need to define some of the variables here to save en evaluation logic in the templates.
@@ -178,7 +177,6 @@ class jitsi (
       modules_enabled => $vhost_modules,
     } + $custom_options,
   }
-  ~>Class['systemd::systemctl::daemon_reload']
   ~>Service['prosody']
   # }}}
     # Guest vhost{{{
@@ -192,8 +190,7 @@ class jitsi (
         modules_enabled        => $vhost_modules,
       },
     }
-    ~>Class['systemd::systemctl::daemon_reload']
-    ~>Service['prosody']
+      ~>Service['prosody']
     # }}}
     # Authentication vhost for conference focus user{{{
     prosody::virtualhost { "auth.${hostname}":
@@ -204,8 +201,7 @@ class jitsi (
         authentication => 'internal_plain',
       },
     }
-    ~>Class['systemd::systemctl::daemon_reload']
-    ~>Service['prosody']
+      ~>Service['prosody']
     # }}}
     # }}}
     # Create focus user{{{
@@ -213,8 +209,7 @@ class jitsi (
       pass => $focus_user_secret,
       host => "auth.${hostname}",
     }
-    ~>Class['systemd::systemctl::daemon_reload']
-    ~>Service['prosody']
+      ~>Service['prosody']
     #}}}
   # }}}
   # Webserver{{{
@@ -293,7 +288,6 @@ class jitsi (
     ensure  => file,
     content => template('jitsi/meet/config.js.erb'),
     require => Package['jitsi-meet-web'],
-    notify  => Class['systemd::systemctl::daemon_reload'],
   }
 
   # }}}
@@ -303,7 +297,6 @@ class jitsi (
     content => template('jitsi/jicofo/config.erb'),
     require => Package['jicofo'],
   }
-  ~>Class['systemd::systemctl::daemon_reload']
   ~>Service['jicofo']
 
   # }}}
@@ -313,7 +306,6 @@ class jitsi (
     ensure  => file,
     content => template('jitsi/videobridge/config.erb'),
   }
-  ~>Class['systemd::systemctl::daemon_reload']
   ~>Service['jitsi-videobridge']
 
   # App configuration
@@ -321,20 +313,17 @@ class jitsi (
     ensure  => file,
     content => template('jitsi/videobridge/sip-communicator.properties.erb'),
   }
-  ~>Class['systemd::systemctl::daemon_reload']
   ~>Service['jitsi-videobridge']
 
   # Remove old sysvinit script
   file { '/etc/init.d/jitsi-videobridge':
     ensure => absent,
-    notify => Class['systemd::systemctl::daemon_reload'],
   }
 
   # Remove systemd script
   # The package now ships with one.
   file { '/etc/systemd/system/jvb.service':
     ensure => absent,
-    notify => Class['systemd::systemctl::daemon_reload'],
   }
 
   file { '/etc/systemd/system/jitsi-videobridge.service.d':
@@ -345,7 +334,6 @@ class jitsi (
     ensure  => present,
     content => "[Service]\nExecStart=\nExecStart=/usr/share/jitsi-videobridge/jvb.sh --host=\${JVB_HOST} --domain=\${JVB_HOSTNAME} --port=\${JVB_PORT} --secret=\${JVB_SECRET} \${JVB_OPTS}\n",
   }
-  ~>Class['systemd::systemctl::daemon_reload']
   ~>Service['jitsi-videobridge']
 
   service { 'jitsi-videobridge':
@@ -361,7 +349,6 @@ class jitsi (
   service { 'jigasi':
     ensure    => running,
     enable    => true,
-    subscribe => Class['systemd::systemctl::daemon_reload']
   }
 
   # }}}
